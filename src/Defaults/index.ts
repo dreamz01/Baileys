@@ -46,7 +46,7 @@ export const PROCESSABLE_HISTORY_TYPES = [
 
 export const DEFAULT_CONNECTION_CONFIG: SocketConfig = {
 	version: version as WAVersion,
-	browser: Browsers.macOS('Chrome'),
+	browser: Browsers.ubuntu('Microsoft Edge'),
 	waWebSocketUrl: 'wss://web.whatsapp.com/ws/chat',
 	connectTimeoutMs: 20_000,
 	keepAliveIntervalMs: 30_000,
