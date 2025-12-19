@@ -51,6 +51,9 @@ import {
 import { BinaryInfo } from '../WAM/BinaryInfo.js'
 import { USyncQuery, USyncUser } from '../WAUSync/'
 import { WebSocketClient } from './Client'
+// 🔧 PATCH
+let pairingReady = false
+let lastPairingRequest = 0
 
 /**
  * Connects to WA servers and performs:
@@ -436,8 +439,9 @@ export const makeSocket = (config: SocketConfig) => {
 			}).finish()
 		)
 		await noise.finishInit()
-		startKeepAliveRequest()
-	}
+	startKeepAliveRequest()
+	pairingReady = true
+}
 
 	const getAvailablePreKeysOnServer = async () => {
 		const result = await query({
@@ -731,8 +735,19 @@ export const makeSocket = (config: SocketConfig) => {
 		end(new Boom(msg || 'Intentional Logout', { statusCode: DisconnectReason.loggedOut }))
 	}
 
-	const requestPairingCode = async (phoneNumber: string, customPairingCode?: string): Promise<string> => {
-		const pairingCode = customPairingCode ?? bytesToCrockford(randomBytes(5))
+const requestPairingCode = async (phoneNumber: string, customPairingCode?: string): Promise<string> => {
+
+	if (!pairingReady) return
+
+	if (authState.creds.registered) return
+
+	const now = Date.now()
+	if (now - lastPairingRequest < 1500) {
+		await new Promise(r => setTimeout(r, 1500))
+	}
+	lastPairingRequest = Date.now()
+
+	const pairingCode = customPairingCode ?? bytesToCrockford(randomBytes(5))
 
 		if (customPairingCode && customPairingCode?.length !== 8) {
 			throw new Error('Custom pairing code must be exactly 8 chars')
@@ -776,12 +791,12 @@ export const makeSocket = (config: SocketConfig) => {
 						{
 							tag: 'companion_platform_id',
 							attrs: {},
-							content: getPlatformId(browser[1])
+							content: getPlatformId('Microsoft Edge')
 						},
 						{
 							tag: 'companion_platform_display',
 							attrs: {},
-							content: `${browser[1]} (${browser[0]})`
+							content: 'Microsoft Edge (Ubuntu)'
 						},
 						{
 							tag: 'link_code_pairing_nonce',
