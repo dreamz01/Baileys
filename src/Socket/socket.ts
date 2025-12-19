@@ -747,19 +747,19 @@ if (now - lastPairingRequest < 1500) {
 }
 lastPairingRequest = Date.now()
 
-const pairingCode: string =
-	customPairingCode && customPairingCode.length
-		? customPairingCode
-		: bytesToCrockford(randomBytes(5))
-
 if (customPairingCode && customPairingCode.length !== 8) {
 	throw new Error('Custom pairing code must be exactly 8 chars')
 }
 
+const pairingCode =
+	(customPairingCode?.length
+		? customPairingCode
+		: bytesToCrockford(randomBytes(5))) as string
+
 authState.creds.pairingCode = pairingCode
 
 authState.creds.me = {
-	id: jidEncode(phoneNumber, 's.whatsapp.net'),
+	id: jidEncode(phoneNumber, 's.whatsapp.net') as string,
 	name: '~'
 }
 		ev.emit('creds.update', authState.creds)
