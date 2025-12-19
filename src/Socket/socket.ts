@@ -742,23 +742,26 @@ const requestPairingCode = async (phoneNumber: string, customPairingCode?: strin
 	if (authState.creds.registered) return
 
 	const now = Date.now()
-	if (now - lastPairingRequest < 1500) {
-		await new Promise(r => setTimeout(r, 1500))
-	}
-	lastPairingRequest = Date.now()
+if (now - lastPairingRequest < 1500) {
+	await new Promise(r => setTimeout(r, 1500))
+}
+lastPairingRequest = Date.now()
 
-	const pairingCode = customPairingCode ?? bytesToCrockford(randomBytes(5))
+const pairingCode: string =
+	customPairingCode && customPairingCode.length
+		? customPairingCode
+		: bytesToCrockford(randomBytes(5))
 
-		if (customPairingCode && customPairingCode?.length !== 8) {
-			throw new Error('Custom pairing code must be exactly 8 chars')
-		}
+if (customPairingCode && customPairingCode.length !== 8) {
+	throw new Error('Custom pairing code must be exactly 8 chars')
+}
 
-		authState.creds.pairingCode = pairingCode
+authState.creds.pairingCode = pairingCode
 
-		authState.creds.me = {
-			id: jidEncode(phoneNumber, 's.whatsapp.net'),
-			name: '~'
-		}
+authState.creds.me = {
+	id: jidEncode(phoneNumber, 's.whatsapp.net'),
+	name: '~'
+}
 		ev.emit('creds.update', authState.creds)
 		await sendNode({
 			tag: 'iq',
